@@ -103,6 +103,8 @@
       var fishSpeed = 1;
       var previousFishRotation = 0;
 
+      var eyeRotation;
+
       var tailSwingDirection = 1;
       var fishTailAxis;
 
@@ -118,11 +120,11 @@
 
         // Movimiento y rotación del pez
         let vector = mousePosition.subtract(myFish.position);
-        console.log(magnitudeSqr(vector));
 
         let unitVector = unitaryVector(vector);
         let currentFishRotation = vector2Angle(unitVector);
         myFish.rotation = currentFishRotation - previousFishRotation;
+        eyeRotation = previousFishRotation - currentFishRotation; // Rotacion del ojo se calcula aca para evitar mas variables ilegibles
         previousFishRotation = currentFishRotation;
 
         // Solo se mueve si esta lo suficientemente lejos como para hacerlo
@@ -131,14 +133,16 @@
           myFish.position.y += fishSpeed * unitVector.y;
         }
 
-        // Movimiento y rotación del ojo del pez
+        // Rotación del ojo del pez
 
-        // myFish.children[2].children[1].rotate(2, myFish.children[2].position);
-
-        fishTailAxis = unitVector.multiply(80);
+        myFish.children[2].children[1].rotate(
+          eyeRotation,
+          myFish.children[2].position // Se rota respecto al ojo grande
+        );
 
         // Rotación de la aleta del pez
         if (frame == 0) {
+          fishTailAxis = unitVector.multiply(80);
           myFish.children[1].rotate(
             tailSwingDirection * 15,
             myFish.children[0].position.subtract(fishTailAxis)
