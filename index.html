@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pez Animado con Paper.js</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.15/paper-core.min.js"></script>
+    <style>
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="fishCanvas" resize></canvas>
+    <script>
+      paper.setup("fishCanvas");
+
+      function drawFish() {
+        var center = paper.view.center;
+        var fishBody = new paper.Path.Ellipse({
+          center: center,
+          radius: [80, 30],
+          fillColor: "fuchsia",
+        });
+
+        var fishTail = new paper.Path({
+          segments: [
+            [center.x - 80, center.y],
+            [center.x - 120, center.y - 30],
+            [center.x - 120, center.y + 30],
+          ],
+          fillColor: "fuchsia",
+          closed: true,
+        });
+
+        var fishOuterEye = new paper.Path.Circle({
+          center: [center.x + 50, center.y - 10],
+          radius: 10,
+          fillColor: "white",
+        });
+
+        var fishInnerEye = new paper.Path.Circle({
+          center: [center.x + 50, center.y - 7],
+          radius: 5,
+          fillColor: "black",
+        });
+
+        // var fishInnerEye2 = new paper.Path.Circle({
+        //   center: [center.x + 50, center.y - 13],
+        //   radius: 5,
+        //   fillColor: "orange",
+        // });
+
+        var fishEye = new paper.Group([
+          fishOuterEye,
+          fishInnerEye,
+          // fishInnerEye2,
+        ]);
+
+        var fishHat = new paper.Path({
+          segments: [
+            [center.x + 40, center.y - 30],
+            [center.x + 40, center.y - 40],
+            [center.x + 15, center.y - 40],
+            [center.x + 15, center.y - 70],
+            [center.x - 15, center.y - 70],
+            [center.x - 15, center.y - 40],
+            [center.x - 40, center.y - 40],
+            [center.x - 40, center.y - 30],
+          ],
+          fillColor: "black",
+          closed: true,
+        });
+
+        var fish = new paper.Group([fishBody, fishTail, fishEye, fishHat]);
+        return fish;
+      }
+
+      var myFish = drawFish();
+
+      paper.view.onFrame = function (event) {
+        // Movimiento y rotación del pez
+        myFish.position.x += 2;
+        myFish.children[2].children[1].rotate(2, myFish.children[2].position);
+
+        // Restablecer posición si sale de la pantalla
+        if (myFish.bounds.left > paper.view.bounds.width) {
+          myFish.position.x = -myFish.bounds.width;
+        }
+      };
+    </script>
+  </body>
+</html>
