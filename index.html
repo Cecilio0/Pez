@@ -15,6 +15,25 @@
     <script>
       paper.setup("fishCanvas");
 
+      function magnitudeSqr(vector) {
+        return Math.pow(vector.x, 2) + Math.pow(vector.y, 2);
+      }
+
+      function unitaryVector(vector) {
+        const magnitude = Math.sqrt(magnitudeSqr(vector));
+        const unitVector = new paper.Point(
+          vector.x / magnitude,
+          vector.y / magnitude
+        );
+        return unitVector;
+      }
+
+      function vector2Angle(vector) {
+        var angleRadians = Math.atan2(vector.y, vector.x); // El ángulo en radianes
+        var angleDegrees = angleRadians * (180 / Math.PI); // Convertir a grados
+        return angleDegrees;
+      }
+
       function drawFish() {
         var center = paper.view.center;
         var fishBody = new paper.Path.Ellipse({
@@ -45,17 +64,7 @@
           fillColor: "black",
         });
 
-        // var fishInnerEye2 = new paper.Path.Circle({
-        //   center: [center.x + 50, center.y - 13],
-        //   radius: 5,
-        //   fillColor: "orange",
-        // });
-
-        var fishEye = new paper.Group([
-          fishOuterEye,
-          fishInnerEye,
-          // fishInnerEye2,
-        ]);
+        var fishEye = new paper.Group([fishOuterEye, fishInnerEye]);
 
         var fishHat = new paper.Path({
           segments: [
@@ -73,15 +82,69 @@
         });
 
         var fish = new paper.Group([fishBody, fishTail, fishEye, fishHat]);
+
+        fish.pivot = fish.children[0].position;
+
         return fish;
       }
 
-      var myFish = drawFish();
+      var mousePosition = new paper.Point(0, 0);
 
+      paper.view.onMouseMove = function (event) {
+        mousePosition = event.point;
+        console.log(mousePosition);
+      };
+
+      var slow = 0;
+
+      var frame = 0;
+
+      var myFish = drawFish();
+      var fishSpeed = 1;
+      var previousFishRotation = 0;
+
+      var tailSwingDirection = 1;
+      var fishTailAxis;
+
+      // Logica del pez
       paper.view.onFrame = function (event) {
+        // Debugeo para que vaya lento
+        if (slow++ == 100) {
+          slow = 0;
+        }
+
+        frame++;
+        if (frame == 10) frame = 0; // Para eventos que deban ocurrir cada 10 frames
+
         // Movimiento y rotación del pez
-        myFish.position.x += 2;
-        myFish.children[2].children[1].rotate(2, myFish.children[2].position);
+        let vector = mousePosition.subtract(myFish.position);
+        console.log(magnitudeSqr(vector));
+
+        let unitVector = unitaryVector(vector);
+        let currentFishRotation = vector2Angle(unitVector);
+        myFish.rotation = currentFishRotation - previousFishRotation;
+        previousFishRotation = currentFishRotation;
+
+        // Solo se mueve si esta lo suficientemente lejos como para hacerlo
+        if (magnitudeSqr(vector) > 6500) {
+          myFish.position.x += fishSpeed * unitVector.x;
+          myFish.position.y += fishSpeed * unitVector.y;
+        }
+
+        // Movimiento y rotación del ojo del pez
+
+        // myFish.children[2].children[1].rotate(2, myFish.children[2].position);
+
+        fishTailAxis = unitVector.multiply(80);
+
+        // Rotación de la aleta del pez
+        if (frame == 0) {
+          myFish.children[1].rotate(
+            tailSwingDirection * 15,
+            myFish.children[0].position.subtract(fishTailAxis)
+          );
+          tailSwingDirection *= -1;
+        }
 
         // Restablecer posición si sale de la pantalla
         if (myFish.bounds.left > paper.view.bounds.width) {
