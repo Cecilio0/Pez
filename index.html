@@ -84,6 +84,10 @@
         var fish = new paper.Group([fishBody, fishTail, fishEye, fishHat]);
 
         fish.pivot = fish.children[0].position;
+        fish.children[1].rotate(
+          -7.5,
+          fish.children[0].position.subtract(new paper.Point(80, 0))
+        );
 
         return fish;
       }
@@ -92,7 +96,6 @@
 
       paper.view.onMouseMove = function (event) {
         mousePosition = event.point;
-        console.log(mousePosition);
       };
 
       var slow = 0;
@@ -100,10 +103,10 @@
       var frame = 0;
 
       var myFish = drawFish();
-      var fishSpeed = 1;
+      var fishSpeed = 3;
       var previousFishRotation = 0;
 
-      var eyeRotation;
+      var eyeRotationSpeed = 1;
 
       var tailSwingDirection = 1;
       var fishTailAxis;
@@ -115,40 +118,40 @@
           slow = 0;
         }
 
-        frame++;
-        if (frame == 10) frame = 0; // Para eventos que deban ocurrir cada 10 frames
-
         // Movimiento y rotación del pez
         let vector = mousePosition.subtract(myFish.position);
 
         let unitVector = unitaryVector(vector);
         let currentFishRotation = vector2Angle(unitVector);
-        myFish.rotation = currentFishRotation - previousFishRotation;
-        eyeRotation = previousFishRotation - currentFishRotation; // Rotacion del ojo se calcula aca para evitar mas variables ilegibles
+        myFish.rotate(currentFishRotation - previousFishRotation);
         previousFishRotation = currentFishRotation;
 
-        // Solo se mueve si esta lo suficientemente lejos como para hacerlo
-        if (magnitudeSqr(vector) > 6500) {
-          myFish.position.x += fishSpeed * unitVector.x;
-          myFish.position.y += fishSpeed * unitVector.y;
+        // la velocidad del pez cambia dependiendo de la distancia del mouse, si está muy cerca se aleja, si está muy lejos va muy rápido
+        let magnitude2 = magnitudeSqr(vector);
+        let speedAux = fishSpeed - 60000 / magnitude2 + magnitude2 / 60000;
+        myFish.position.x += speedAux * unitVector.x;
+        myFish.position.y += speedAux * unitVector.y;
+
+        // Conteo para cambio de direccion de la aleta
+        frame++;
+        if (frame == 10) frame = 0; // Para eventos que deban ocurrir cada 10 frames
+
+        // Rotación de la aleta del pez
+        fishTailAxis = unitVector.multiply(80);
+        myFish.children[1].rotate(
+          tailSwingDirection * 1.5,
+          myFish.children[0].position.subtract(fishTailAxis)
+        );
+        if (frame == 0) {
+          tailSwingDirection *= -1;
         }
 
         // Rotación del ojo del pez
 
         myFish.children[2].children[1].rotate(
-          eyeRotation,
+          eyeRotationSpeed + magnitude2 / 20000,
           myFish.children[2].position // Se rota respecto al ojo grande
         );
-
-        // Rotación de la aleta del pez
-        if (frame == 0) {
-          fishTailAxis = unitVector.multiply(80);
-          myFish.children[1].rotate(
-            tailSwingDirection * 15,
-            myFish.children[0].position.subtract(fishTailAxis)
-          );
-          tailSwingDirection *= -1;
-        }
 
         // Restablecer posición si sale de la pantalla
         if (myFish.bounds.left > paper.view.bounds.width) {
