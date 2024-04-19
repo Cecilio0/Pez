@@ -1,15 +1,21 @@
 {
-  "name": "paper",
+  "name": "fish",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "fish.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "live-server"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "JavaScript",
+    "PaperScript",
+    "animation",
+    "poissons"
+  ],
+  "author": "Votre Nom",
+  "license": "MIT",
   "dependencies": {
-    "paper": "^0.12.17"
+    "paper": "^0.12.15"
   }
 }
+
