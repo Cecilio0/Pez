@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Poissons Animés avec Paper.js</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.15/paper-core.min.js"></script>
+    <style>
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="fishCanvas" resize></canvas>
+    <script>
+      paper.setup("fishCanvas");
+
+      // Fonction pour créer un poisson
+      function createFish(position) {
+        var fishBody = new paper.Path.Ellipse({
+          center: position,
+          radius: [80, 30],
+          fillColor: "fuchsia",
+        });
+
+        var fishTail = new paper.Path({
+          segments: [
+            [position.x - 80, position.y],
+            [position.x - 120, position.y - 30],
+            [position.x - 120, position.y + 30],
+          ],
+          fillColor: "fuchsia",
+          closed: true,
+        });
+
+        var fishOuterEye = new paper.Path.Circle({
+          center: [position.x + 50, position.y - 10],
+          radius: 10,
+          fillColor: "white",
+        });
+
+        var fishInnerEye = new paper.Path.Circle({
+          center: [position.x + 50, position.y - 7],
+          radius: 5,
+          fillColor: "black",
+        });
+
+        var fishEye = new paper.Group([fishOuterEye, fishInnerEye]);
+
+        var fishHat = new paper.Path({
+          segments: [
+            [position.x + 40, position.y - 30],
+            [position.x + 40, position.y - 40],
+            [position.x + 15, position.y - 40],
+            [position.x + 15, position.y - 70],
+            [position.x - 15, position.y - 70],
+            [position.x - 15, position.y - 40],
+            [position.x - 40, position.y - 40],
+            [position.x - 40, position.y - 30],
+          ],
+          fillColor: "black",
+          closed: true,
+        });
+
+        var fish = new paper.Group([fishBody, fishTail, fishEye, fishHat]);
+        fish.pivot = fish.children[0].position;
+
+        return fish;
+      }
+
+      // Fonction pour gérer le mouvement du poisson
+      function moveFish(fish, targetPosition, speed) {
+        let vector = targetPosition.subtract(fish.position);
+        if (vector.length > 80) {
+          fish.position = fish.position.add(vector.normalize(speed));
+        }
+      }
+
+      // Fonction pour gérer la rotation des yeux du poisson
+      function rotateEyes(fish, eyeRotation) {
+        fish.children[2].children[1].rotate(
+          eyeRotation,
+          fish.children[2].position
+        );
+      }
+
+      var mousePosition = new paper.Point(0, 0);
+
+      paper.view.onMouseMove = function (event) {
+        mousePosition = event.point;
+      };
+
+      var fish1 = createFish(new paper.Point(200, 200));
+      var fish2 = createFish(new paper.Point(400, 400));
+
+      var fishSpeed1 = 1;
+      var fishSpeed2 = 1;
+      var previousFishRotation1 = 0;
+      var previousFishRotation2 = 0;
+      var eyeRotation1;
+      var eyeRotation2;
+      var tailSwingDirection1 = 1;
+      var tailSwingDirection2 = 1;
+      var fishTailAxis1;
+      var fishTailAxis2;
+
+      paper.view.onFrame = function (event) {
+        // Déplacer le premier poisson
+        moveFish(fish1, mousePosition, fishSpeed1);
+        // Calculer la rotation et faire tourner les yeux du premier poisson
+        let vector1 = mousePosition.subtract(fish1.position);
+        let unitVector1 = vector1.normalize();
+        let currentFishRotation1 = unitVector1.angle;
+        fish1.rotation = currentFishRotation1 - previousFishRotation1;
+        eyeRotation1 = previousFishRotation1 - currentFishRotation1;
+        previousFishRotation1 = currentFishRotation1;
+        rotateEyes(fish1, eyeRotation1);
+
+        // Déplacer le deuxième poisson
+        moveFish(fish2, mousePosition, fishSpeed2);
+        // Calculer la rotation et faire tourner les yeux du deuxième poisson
+        let vector2 = mousePosition.subtract(fish2.position);
+        let unitVector2 = vector2.normalize();
+        let currentFishRotation2 = unitVector2.angle;
+        fish2.rotation = currentFishRotation2 - previousFishRotation2;
+        eyeRotation2 = previousFishRotation2 - currentFishRotation2;
+        previousFishRotation2 = currentFishRotation2;
+        rotateEyes(fish2, eyeRotation2);
+
+        if (event.count % 10 === 0) {
+          // Faire balancer la queue du premier poisson
+          fishTailAxis1 = unitVector1.multiply(80);
+          fish1.children[1].rotate(
+            tailSwingDirection1 * 15,
+            fish1.children[0].position.subtract(fishTailAxis1)
+          );
+          // Faire balancer la queue du deuxième poisson
+          fishTailAxis2 = unitVector2.multiply(80);
+          fish2.children[1].rotate(
+            tailSwingDirection2 * 15,
+            fish2.children[0].position.subtract(fishTailAxis2)
+          );
+          tailSwingDirection1 *= -1;
+          tailSwingDirection2 *= -1;
+        }
+
+        if (fish1.bounds.left > paper.view.bounds.width) {
+          fish1.position.x = -fish1.bounds.width;
+        }
+        if (fish2.bounds.left > paper.view.bounds.width) {
+          fish2.position.x = -fish2.bounds.width;
+        }
+      };
+    </script>
+  </body>
+</html>
