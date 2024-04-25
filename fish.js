@@ -9,7 +9,7 @@ paper.view.onMouseMove = function (event) {
   mousePosition = event.point;
 };
 
-var numFish = 10;
+var numFish = 30;
 var fishes = [];
 
 for (let i = 0; i < numFish; i++) {
@@ -24,10 +24,8 @@ var fishTailAxes = new Array(numFish);
 
 paper.view.onFrame = function (event) {
   for (let i = 0; i < numFish; i++) {
-    console.log("Fish position before movement:", fishes[i].position);
     moveFish(fishes[i], fishes, mousePosition, fishSpeed);
-    console.log("Fish position after movement:", fishes[i].position);
-
+    
     let vector = mousePosition.subtract(fishes[i].position);
     let unitVector = vector.normalize();
     let currentFishRotation = unitVector.angle;

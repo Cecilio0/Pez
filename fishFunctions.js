@@ -64,7 +64,7 @@ function calculateSeparationForce(fish, allFishes) {
   let count = 0;
 
   for (let otherFish of allFishes) {
-    if (otherFish !== fish && otherFish.position.getDistance(fish.position) < 60) {
+    if (otherFish !== fish && otherFish.position.getDistance(fish.position) < 100) {
       let awayVector = fish.position.subtract(otherFish.position);
       separationForce = separationForce.add(awayVector);
       count++;
@@ -84,7 +84,7 @@ function calculateCohesionForce(fish, allFishes) {
   let count = 0;
 
   for (let otherFish of allFishes) {
-    if (otherFish !== fish && otherFish.position.getDistance(fish.position) < 100) {
+    if (otherFish !== fish && otherFish.position.getDistance(fish.position) < 75) {
       centerOfMass = centerOfMass.add(otherFish.position);
       count++;
     }
@@ -105,13 +105,7 @@ export function moveFish(fish, allFishes, targetPosition, speed) {
   let separationForce = calculateSeparationForce(fish, allFishes);
   let cohesionForce = calculateCohesionForce(fish, allFishes);
 
-  console.log("Alignment force:", alignmentForce);
-  console.log("Separation force:", separationForce);
-  console.log("Cohesion force:", cohesionForce);
-
-  let combinedForce = alignmentForce.add(separationForce.multiply(10)).add(cohesionForce.multiply(0.5));
-
-  console.log("Combined force:", combinedForce);
+  let combinedForce = alignmentForce.add(separationForce.multiply(5)).add(cohesionForce.multiply(0.5));
 
   fish.position = fish.position.add(combinedForce.normalize(speed));
 }
